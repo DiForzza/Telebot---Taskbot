@@ -14,10 +14,12 @@ def auth(phone_usm, chatid):
     for i in range(1, rows + 1):
         basenumber = sheet.cell(row=i, column=2)
         name_surname = sheet.cell(row=i, column=1)
-        #bot.send_message(chatid, f'Доброго времени суток, {phone_usm}, {basenumber.value}, {name_surname.value}.')
         if int(phone_usm) == int(basenumber.value):
             auth_ok = 1
             bot.send_message(chatid, f'Доброго времени суток, {name_surname.value}.')
+            c1 = sheet.cell(row=i, column=4)
+            c1.value = chatid
+            wb.save("sotr/auth.xlsx")
     return auth_ok
 
 @bot.message_handler(commands=["start"])
@@ -46,7 +48,7 @@ def read_contact_phone(message):
 @bot.message_handler(content_types=['text'])
 def send_text(message):
     if message.text == 'Просмотр своих задач':
-        bot.send_message(message.chat.id, f'Привет')
+        bot.send_message(message.chat.id, f'Привет {message.chat.id}, {message.from_user.id}') #814835614 Dima
     elif message.text.lower() == 'Поставить задачу':
         bot.send_message(message.chat.id, 'Поставить задачу')
     elif message.text.lower() == 'Мои задачи':

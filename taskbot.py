@@ -9,14 +9,15 @@ sheet = wb.active
 rows = sheet.max_row
 cols = sheet.max_column
 
-def auth(phone_usm, chatid, auth_ok):
+def auth(phone_usm, chatid):
+    global auth_ok
     for i in range(1, rows + 1):
         basenumber = sheet.cell(row=i, column=2)
         name_surname = sheet.cell(row=i, column=1)
         #bot.send_message(chatid, f'Доброго времени суток, {phone_usm}, {basenumber.value}, {name_surname.value}.')
         if int(phone_usm) == int(basenumber.value):
-            auth_ok = True
-            bot.send_message(chatid, f'Доброго времени суток, {name_surname.value}. {auth_ok}')
+            auth_ok = 1
+            bot.send_message(chatid, f'Доброго времени суток, {name_surname.value}.')
     return auth_ok
 
 @bot.message_handler(commands=["start"])
@@ -28,12 +29,12 @@ def geophone(message):
 
 @bot.message_handler(content_types=['contact'])
 def read_contact_phone(message):
-    auth_ok = False
+    global auth_ok
+    auth_ok = 0
     phone_usm = message.contact.phone_number
     chatid = message.chat.id
-    auth(phone_usm, chatid, auth_ok)
-    bot.send_message(chatid, f'{auth_ok}')
-    if auth_ok == False:
+    auth(phone_usm, chatid)
+    if auth_ok == 0:
         bot.send_message(chatid, f'Авторизация не пройдена. Номера не существует. {auth_ok}')
     else:
         keyboard2 = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)

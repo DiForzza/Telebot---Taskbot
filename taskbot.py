@@ -33,10 +33,6 @@ def read_contact_phone(message):
     chatid = message.chat.id
     auth(phone_usm, chatid, auth_ok)
     bot.send_message(chatid, f'{auth_ok}')
-    # if phone_usm == '79506494655':
-    #     bot.send_message(message.chat.id, f'Доброго времени суток, Дмитрий Александрович.')
-    # else:
-    #     bot.send_message(message.chat.id, f'Номер не зарегистрирован.')
     if auth_ok == False:
         bot.send_message(chatid, f'Авторизация не пройдена. Номера не существует. {auth_ok}')
     else:

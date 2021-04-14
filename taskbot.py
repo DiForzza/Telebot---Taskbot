@@ -39,11 +39,16 @@ def read_contact_phone(message):
     if auth_ok == 0:
         bot.send_message(chatid, f'Авторизация не пройдена. Номера не существует. {auth_ok}')
     else:
-        keyboard2 = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+        keyboard2 = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
         button_task = types.KeyboardButton(text="Просмотр своих задач")
-        button_settask = types.KeyboardButton(text="Поставить задачу")
-        keyboard2.add(button_task, button_settask)
+        button_settaskto = types.KeyboardButton(text="Поставить задачу")
+        button_mytaskto = types.KeyboardButton(text="Мои назначенные задачи")
+        button_settask = types.KeyboardButton(text="Отметить задачу выполненной")
+        keyboard2.add(button_task, button_settaskto)
+        keyboard2.add(button_mytaskto, button_settask)
         bot.send_message(message.chat.id, "Выберите интересующий пункт меню:", reply_markup=keyboard2)
+
+def settask():
 
 @bot.message_handler(content_types=['text'])
 def send_text(message):
@@ -51,9 +56,9 @@ def send_text(message):
         bot.send_message(message.chat.id, f'Привет {message.chat.id}, {message.from_user.id}') #814835614 Dima
     elif message.text.lower() == 'Поставить задачу':
         bot.send_message(message.chat.id, 'Поставить задачу')
-    elif message.text.lower() == 'Мои задачи':
+    elif message.text.lower() == 'Мои назначенные задачи':
         bot.send_message(message.chat.id, 'Мои задачи')
-    elif message.text.lower() == 'Отметить задачу':
+    elif message.text.lower() == 'Отметить задачу выполненной':
         bot.send_message(message.chat.id, 'Отметить задачу')
 
 bot.polling()

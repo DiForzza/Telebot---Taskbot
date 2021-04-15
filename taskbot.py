@@ -4,22 +4,27 @@ import openpyxl
 # @test4456_bot
 
 bot = telebot.TeleBot('1530619842:AAH20gD_rs72BX9HsXlef2avhbxMPXUiROk')
-wb = openpyxl.load_workbook('sotr/auth.xlsx')
-sheet = wb.active
-rows = sheet.max_row
-cols = sheet.max_column
+wb_auth = openpyxl.load_workbook('sotr/auth.xlsx')
+wb_task = openpyxl.load_workbook('sotr/task.xlsx')
+sheet_auth = wb_auth.active
+sheet_task = wb_task.active
+rows_auth = sheet_auth.max_row
+rows_task = sheet_task.max_row
+cols = sheet_auth.max_column
+auth_ok = 0
 
 def auth(phone_usm, chatid):
     global auth_ok
-    for i in range(1, rows + 1):
-        basenumber = sheet.cell(row=i, column=2)
-        name_surname = sheet.cell(row=i, column=1)
+    for i in range(2, rows_auth + 1):
+        surname = sheet_auth.cell(row=i, column=1)
+        name = sheet_auth.cell(row=i, column=2)
+        basenumber = sheet_auth.cell(row=i, column=3)
         if int(phone_usm) == int(basenumber.value):
             auth_ok = 1
-            bot.send_message(chatid, f'Доброго времени суток, {name_surname.value}.')
-            c1 = sheet.cell(row=i, column=4)
+            bot.send_message(chatid, f'Доброго времени суток, {surname.value} {name.value}.')
+            c1 = sheet_auth.cell(row=i, column=5)
             c1.value = chatid
-            wb.save("sotr/auth.xlsx")
+            wb_auth.save("sotr/auth.xlsx")
     return auth_ok
 
 @bot.message_handler(commands=["start"])
@@ -48,17 +53,64 @@ def read_contact_phone(message):
         keyboard2.add(button_mytaskto, button_settask)
         bot.send_message(message.chat.id, "Выберите интересующий пункт меню:", reply_markup=keyboard2)
 
-def settask():
+def settask_find_coincidence(message):
+    chat_id = message.chat.id
+    surname = message.text
+    surname_founded = 0
+    if message.text != 'Поставить задачу':
+        for i in range(1, rows_auth + 1):
+            surnameinbase = sheet_auth.cell(row=i, column=1)
+            if surname == surnameinbase.value:
+                msg =  bot.send_message(chat_id, f'В базе найден {surname}. Напишите задание: ')
+                bot.register_next_step_handler(msg, settask_write_to_base, i)
+                surname_founded = 1
+                break
+        if surname_founded == 0:
+            bot.send_message(chat_id, f'В базе фамилия не найдена.')
+    else:
+        seemytask(message)
+        return
+
+def find_my_surname(chat_id):
+    for i in range(1, rows_auth + 1):
+        id = sheet_auth.cell(row=i, column=5).value
+        if id == chat_id:
+            my_surname = sheet_auth.cell(row=i, column=1).value
+            #bot.send_message(chat_id, my_surname)
+            return my_surname
+
+def settask_write_to_base(message, number_in_base):
+    chat_id = message.chat.id
+    task = message.text
+    number_of_cols = 0
+    #bot.send_message(chat_id, sheet_task.max_column)
+    for i in range(1, sheet_task.max_column + 1):
+        comparison = sheet_task.cell(row=number_in_base, column=i)
+        if comparison.value is not None:
+            number_of_cols += 1
+    bot.send_message(chat_id, f'Вы написали задание: {task}, номер строки {number_in_base}, теперь {number_of_cols + 1} заданий ')
+    c1 = sheet_task.cell(row=number_in_base, column=number_of_cols +1)
+    c1.value = task
+    wb_task.save("sotr/task.xlsx")
+    send_task_to_id = sheet_auth.cell(row=number_in_base, column=5).value
+    bot.send_message(send_task_to_id, f'Вы получили новое задание от {find_my_surname(chat_id)}: ')
+    #bot.send_message(send_task_to_id, f'{message} {task}')
+
+
+def seemytask(message):
+    chat_id = message.chat.id
+    bot.send_message(chat_id, f'Привет, {message.chat.id}, {message.from_user.id}')  # 814835614 Dima
 
 @bot.message_handler(content_types=['text'])
 def send_text(message):
     if message.text == 'Просмотр своих задач':
-        bot.send_message(message.chat.id, f'Привет {message.chat.id}, {message.from_user.id}') #814835614 Dima
-    elif message.text.lower() == 'Поставить задачу':
-        bot.send_message(message.chat.id, 'Поставить задачу')
-    elif message.text.lower() == 'Мои назначенные задачи':
+        seemytask(message)
+    elif message.text == 'Поставить задачу':
+        msg =  bot.send_message(message.chat.id, 'Напишите фамилию того, для кого Вы создаете задачу:')
+        bot.register_next_step_handler(msg, settask_find_coincidence)
+    elif message.text == 'Мои назначенные задачи':
         bot.send_message(message.chat.id, 'Мои задачи')
-    elif message.text.lower() == 'Отметить задачу выполненной':
+    elif message.text == 'Отметить задачу выполненной':
         bot.send_message(message.chat.id, 'Отметить задачу')
 
 bot.polling()

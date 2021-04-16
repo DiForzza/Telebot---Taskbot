@@ -58,15 +58,21 @@ def settask_find_coincidence(message):
     surname = message.text
     surname_founded = 0
     if message.text != 'Поставить задачу':
-        for i in range(1, rows_auth + 1):
-            surnameinbase = sheet_auth.cell(row=i, column=1)
+        for number_in_base in range(1, rows_auth + 1):
+            surnameinbase = sheet_auth.cell(row=number_in_base, column=1)
             if surname == surnameinbase.value:
-                msg =  bot.send_message(chat_id, f'В базе найден {surname}. Напишите задание: ')
-                bot.register_next_step_handler(msg, settask_write_to_base, i)
-                surname_founded = 1
-                break
+                if sheet_auth.cell(row=number_in_base, column=5).value is not None:
+                    msg = bot.send_message(chat_id, f'В базе найден {surname}. Напишите задание: ')
+                    bot.register_next_step_handler(msg, settask_write_to_base, number_in_base)
+                    surname_founded = 1
+                    break
+                else:
+                    surname_founded = 2
+                    break
         if surname_founded == 0:
             bot.send_message(chat_id, f'В базе фамилия не найдена.')
+        elif surname_founded == 2:
+            bot.send_message(chat_id, f'Пользователь не зарегистрирован')
     else:
         seemytask(message)
         return

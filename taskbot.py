@@ -19,7 +19,7 @@ def auth(phone_usm, chatid):
         surname = sheet_auth.cell(row=i, column=1)
         name = sheet_auth.cell(row=i, column=2)
         basenumber = sheet_auth.cell(row=i, column=3)
-        if int(phone_usm) == int(basenumber.value):
+        if int(phone_usm) == basenumber.value:
             auth_ok = 1
             bot.send_message(chatid, f'Доброго времени суток, {surname.value} {name.value}.')
             c1 = sheet_auth.cell(row=i, column=5)
@@ -29,10 +29,29 @@ def auth(phone_usm, chatid):
 
 @bot.message_handler(commands=["start"])
 def geophone(message):
-    keyboard1 = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-    button_phone = types.KeyboardButton(text="Отправить номер телефона", request_contact=True)
-    keyboard1.add(button_phone)
-    bot.send_message(message.chat.id, "Пройдите авторизацию по номеру телефона", reply_markup=keyboard1)
+    is_auth_ok(message)
+    if is_auth_ok == False:
+        keyboard1 = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+        button_phone = types.KeyboardButton(text="Отправить номер телефона", request_contact=True)
+        keyboard1.add(button_phone)
+        bot.send_message(message.chat.id, "Пройдите авторизацию по номеру телефона", reply_markup=keyboard1)
+ #   else:
+ #       reply_markup = keyboard2
+
+def is_auth_ok(message):
+    chatid = message.chat.id
+    for i in range(2, rows_auth + 1):
+        if sheet_auth.cell(row=i, column=5) is not None:
+            bot.send_message(chatid, f'Авторизация уже выполнена.')
+            keyboard2 = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
+            button_task = types.KeyboardButton(text="Просмотр своих задач")
+            button_settaskto = types.KeyboardButton(text="Поставить задачу")
+            button_mytaskto = types.KeyboardButton(text="Мои назначенные задачи")
+            button_settask = types.KeyboardButton(text="Отметить задачу выполненной")
+            keyboard2.add(button_task, button_settaskto)
+            keyboard2.add(button_mytaskto, button_settask)
+            bot.send_message(message.chat.id, "Выберите интересующий пункт меню:", reply_markup=keyboard2)
+            return True
 
 @bot.message_handler(content_types=['contact'])
 def read_contact_phone(message):
